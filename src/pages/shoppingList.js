@@ -15,21 +15,25 @@ function ShoppingList() {
     const [modalInfo, setModalInfo] = React.useState({id: '', name: '', quantity: 0, category: ''});
 
     useEffect(() => {
-        async function fetchData() {
-            axios.get('http://localhost:5000/items/')
-                .then(response => {
-                    setItems(response.data);
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
-        }
-        fetchData();
-    });
+        axios.get('http://localhost:5000/items/')
+            .then(response => {
+                setItems(response.data);
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+    }, []);
 
     const handleDeleteItem = (id) => {
-        axios.delete('http://localhost:5000/items/'+id)
-            .then(response => { console.log(response.data)});
+        axios.delete('http://localhost:5000/items/' + id)
+            .then(response => {
+                console.log(response.data)
+            });
+
+        let newItems = items.filter(i => {
+            return i._id !== id;
+        });
+        setItems(newItems);
     };
 
     const handleClickOpen = (item) => {
@@ -52,13 +56,29 @@ function ShoppingList() {
             category: modalInfo.category
         };
 
+        console.log("id ", modalInfo.id)
         axios.post('http://localhost:5000/items/update/' + modalInfo.id, item)
             .then(res => console.log(res.data));
+
+        items.map(newItem => {
+            if (newItem._id === modalInfo.id) {
+                newItem.name = modalInfo.name;
+                newItem.quantity = modalInfo.quantity;
+                newItem.category = modalInfo.category;
+            }
+        })
     };
+
+    const updateItems = () => {
+        axios.get('http://localhost:5000/items/')
+            .then(response => {
+                setItems(response.data);
+            })
+    }
 
     return (
         <div>
-            <CreateItem/>
+            <CreateItem items={items} onChange={updateItems}/>
             <h3>Shopping List</h3>
             <table className="table">
                 <thead className="thead-light">
@@ -76,8 +96,14 @@ function ShoppingList() {
                             <td>{item.quantity}</td>
                             <td>{item.category}</td>
                             <td>
-                                <button type="button" onClick={() => {handleClickOpen(item)}}>Edit</button>
-                                <button type="button" onClick={() => {handleDeleteItem(item._id)}}>Delete</button>
+                                <button type="button" onClick={() => {
+                                    handleClickOpen(item)
+                                }}>Edit
+                                </button>
+                                <button type="button" onClick={() => {
+                                    handleDeleteItem(item._id)
+                                }}>Delete
+                                </button>
                             </td>
                         </tr>
                     })) : (
@@ -97,8 +123,9 @@ function ShoppingList() {
                     <DialogTitle id="alert-dialog-slide-title">Edit item</DialogTitle>
                     <DialogContent>
                         <DialogContentText id="alert-dialog-slide-description">
-                            <textarea name="name" value={modalInfo.name}  onChange={(event) => handleEditItem(event)}/>
-                            <textarea name="quantity" value={modalInfo.quantity}  onChange={(event) => handleEditItem(event)}/>
+                            <textarea name="name" value={modalInfo.name} onChange={(event) => handleEditItem(event)}/>
+                            <textarea name="quantity" value={modalInfo.quantity}
+                                      onChange={(event) => handleEditItem(event)}/>
                             <select
                                 required name="category"
                                 className="form-control"

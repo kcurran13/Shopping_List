@@ -1,7 +1,8 @@
 import React from 'react';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 
-function CreateItem() {
+function CreateItem(params) {
     const categories = ["Food", "Snack", "Other"];
     const [values, setValues] = React.useState({name: '', quantity: 0, category: 'Food', list: 'mainList'});
 
@@ -18,7 +19,8 @@ function CreateItem() {
         }
 
         axios.post('http://localhost:5000/items/add', item)
-            .then(res => console.log(res.data));
+            .then(res => console.log(res.data))
+            .then(params.onChange);
     }
 
 
